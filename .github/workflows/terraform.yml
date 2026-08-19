@@ -5,6 +5,8 @@ on:
     branches:
       - features/sujeet
 
+  workflow_dispatch:
+
 permissions:
   id-token: write
   contents: read
@@ -19,30 +21,41 @@ jobs:
         working-directory: ./environment/prod
 
     env:
-      ARM_CLIENT_ID: "${{ vars.AZURE_CLIENT_ID }}"
-      ARM_TENANT_ID: "${{ vars.AZURE_TENANT_ID }}"
-      ARM_SUBSCRIPTION_ID: "${{ vars.AZURE_SUBSCRIPTION_ID }}"
-      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
 
     steps:
+
+      # 1. Checkout Repository
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # 2. Setup Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      # 3. Login to Azure using OIDC
       - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: "${{ vars.AZURE_CLIENT_ID }}"
-          tenant-id: "${{ vars.AZURE_TENANT_ID }}"
-          subscription-id: "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
+      # 4. Terraform Init
       - name: Terraform Init
         run: terraform init
 
+      # 5. Terraform Format Check
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      # 6. Terraform Validate
       - name: Terraform Validate
         run: terraform validate
 
+      # 7. Terraform Plan
       - name: Terraform Plan
         run: terraform plan
