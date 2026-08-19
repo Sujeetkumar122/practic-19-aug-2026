@@ -1,0 +1,49 @@
+name: Terraform Prod
+
+on:
+  push:
+    branches:
+      - features/sujeet
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform Prod Plan
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./environment/prod
+
+    env:
+      ARM_CLIENT_ID: 7d69a824-b946-44ae-9f4a-bfcb23511085
+      ARM_TENANT_ID: ced5781c-1212-48f2-8dde-57e09383d9ee
+      ARM_SUBSCRIPTION_ID: 159a3e1a-9b1c-4856-b0f1-79835fcb99f0
+      ARM_USE_OIDC: "true"
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: 7d69a824-b946-44ae-9f4a-bfcb23511085
+          tenant-id: ced5781c-1212-48f2-8dde-57e09383d9ee
+          allow-no-subscriptions: true
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan
+
