@@ -1,61 +1,100 @@
 name: Terraform Prod
-
 on:
   push:
     branches:
+      - main
       - features/sujeet
 
-  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  terraform:
-    name: Terraform Prod Plan
+
+  terraform-plan:
+
+    name: Terraform Scan and Plan
+
     runs-on: ubuntu-latest
 
     defaults:
       run:
         working-directory: ./environment/prod
-
-    env:
-      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
-      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      ARM_USE_OIDC: true
-
-    steps:
-
-      # 1. Checkout Repository
+      steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Setup Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      # 3. Login to Azure using OIDC
-      - name: Azure Login
+      - name: Azure Login - OIDC
         uses: azure/login@v2
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
-      # 4. Terraform Init
+      - name: Verify Azure Login
+        run: |
+          az account show
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        run: terraform init
+      - name: Terraform Validate
+        run: terraform validate
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: tfplan
+
+
+  terraform-apply:
+
+    name: Terraform Apply
+
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    needs: terraform-plan
+
+    runs-on: ubuntu-latest
+
+  defaults:
+      run:
+        working-directory: ./environment/prod
+
+    steps:
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Azure Login - OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
       - name: Terraform Init
         run: terraform init
 
-      # 5. Terraform Format Check
-      - name: Terraform Format Check
-        run: terraform fmt -check
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
 
-      # 6. Terraform Validate
-      - name: Terraform Validate
-        run: terraform validate
-
-      # 7. Terraform Plan
-      - name: Terraform Plan
-        run: terraform plan
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan
