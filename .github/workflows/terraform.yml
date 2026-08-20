@@ -16,9 +16,9 @@ permissions:
   contents: read
 
 env:
-  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID || vars.AZURE_CLIENT_ID || '7d69a824-b946-44ae-9f4a-bfcb23511085' }}
-  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID || 'ced5781c-1212-48f2-8dde-57e09383d9ee' }}
-  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID || '159a3e1a-9b1c-4856-b0f1-79835fcb99f0' }}
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID || vars.AZURE_CLIENT_ID || '4db6cd28-3ad1-456a-b964-fbaf911c30fb' }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID || vars.AZURE_TENANT_ID || 'e799c17d-3372-460a-a0ae-ac2c7fc44061' }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID || vars.AZURE_SUBSCRIPTION_ID || '0414fcd2-5f6c-4ec8-a4d5-1e87974b6e2c' }}
   ARM_USE_OIDC: "true"
 
 jobs:
