@@ -17,4 +17,9 @@ resource_groups = {
     name     = "prod-rg4"
     location = "Central India"
       }
+         rg5 = {
+    name     = "prod-rg5"
+    location = "Central India"
+      }
+
 }
